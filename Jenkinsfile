@@ -27,20 +27,23 @@ pipeline {
                 sh '. venv/bin/activate && python train.py --output_dir runs/train/exp --weights_path runs/train/exp/weights'
             }
         }
-
+        
         stage('Validate Model') {
             steps {
                 script {
-                    if (fileExists('runs/train/exp/weights/best.pt')) {
-                        sh 'mv runs/train/exp/weights/best.pt best.pt'
+                    if (fileExists('/var/jenkins_home/jobs/Vacas_mlop/workspace/runs/detect/train13/weights/best.pt')) {
+                        sh 'mv /var/jenkins_home/jobs/Vacas_mlop/workspace/runs/detect/train13/weights/best.pt best.pt'
                     } else {
-                        error "El archivo runs/train/exp/weights/best.pt no existe."
+                        error "El archivo /var/jenkins_home/jobs/Vacas_mlop/workspace/runs/detect/train/best.pt no existe."
                     }
                 }
-                sh '. venv/bin/activate && python validate_model.py'
+                sh '''
+                   . venv/bin/activate
+                   python validate_model.py
+                '''
             }
         }
-
+        
         stage('Process Image') {
             steps {
                 sh '. venv/bin/activate && python process_image.py --model_path best.pt --image_path images/frisona.jpg'
