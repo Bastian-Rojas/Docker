@@ -1,13 +1,17 @@
 pipeline {
     agent any
+    
+    environment {
+        MODEL_PATH = 'best.pt' // Define la ruta del modelo entrenado
+    }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/Bastian-Rojas/Docker.git'
+                checkout scm
             }
         }
-
+        
         stage('Setup Python Environment') {
             steps {
                 sh '''
@@ -21,48 +25,29 @@ pipeline {
                 '''
             }
         }
-
+        
         stage('Train Model') {
             steps {
-                sh '. venv/bin/activate && python train.py --output_dir runs/train/exp --weights_path runs/train/exp/weights'
+                sh ". venv/bin/activate && python train.py"
+                // Mueve el modelo entrenado a la ubicación esperada
+                sh "mv runs/train/exp/weights/best.pt ${MODEL_PATH}"
             }
         }
         
         stage('Validate Model') {
             steps {
-                script {
-                    if (fileExists('/var/jenkins_home/jobs/Vacas_mlop/workspace/runs/detect/train13/weights/best.pt')) {
-                        sh 'mv /var/jenkins_home/jobs/Vacas_mlop/workspace/runs/detect/train13/weights/best.pt best.pt'
-                    } else {
-                        error "El archivo /var/jenkins_home/jobs/Vacas_mlop/workspace/runs/detect/train/best.pt no existe."
-                    }
-                }
-                sh '''
-                   . venv/bin/activate
-                   python validate_model.py
-                '''
+                sh ". venv/bin/activate && python validate_model.py"
             }
         }
         
         stage('Process Image') {
             steps {
-                sh '. venv/bin/activate && python process_image.py --model_path best.pt --image_path images/frisona.jpg'
+                script {
+                    def imageProcessorPath = "${WORKSPACE}/image_processor.py"
+                    def imagePath = "${WORKSPACE}/images/frisona.jpg"  // Ruta a la imagen frisona.jpg
+                    sh ". venv/bin/activate && python ${imageProcessorPath} ${imagePath}"
+                }
             }
-        }
-    }
-
-    post {
-        always {
-            archiveArtifacts artifacts: '**/best.pt', allowEmptyArchive: true
-            cleanWs()
-        }
-
-        failure {
-            echo 'El pipeline ha fallado.'
-        }
-
-        success {
-            echo 'El pipeline se ha completado con éxito.'
         }
     }
 }
