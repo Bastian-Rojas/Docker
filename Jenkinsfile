@@ -24,6 +24,7 @@ pipeline {
 
         stage('Train Model') {
             steps {
+                . venv/bin/activate
                 sh 'python train.py --output_dir runs/train/exp --weights_path runs/train/exp/weights'
             }
         }
@@ -37,12 +38,14 @@ pipeline {
                         error "El archivo runs/train/exp/weights/best.pt no existe."
                     }
                 }
+                . venv/bin/activate
                 sh 'python validate_model.py'
             }
         }
 
         stage('Process Image') {
             steps {
+                . venv/bin/activate
                 sh 'python process_image.py --model_path best.pt --image_path images/frisona.jpg'
             }
         }
