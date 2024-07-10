@@ -14,11 +14,17 @@ transform = transforms.Compose([
 ])
 
 def load_model(model_path):
+    if not os.path.exists(model_path):
+        raise FileNotFoundError(f"El archivo del modelo {model_path} no existe.")
+    
     model = YOLO(model_path)
     model.eval()
     return model
 
 def process_image(image_path, model):
+    if not os.path.exists(image_path):
+        raise FileNotFoundError(f"La imagen {image_path} no existe.")
+    
     image = Image.open(image_path)
     image = transform(image).unsqueeze(0)
     
@@ -48,12 +54,16 @@ def process_image(image_path, model):
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("Uso: python image_processor.py <ruta_de_la_imagen>")
-        sys.exit(1)
-
-    image_path = sys.argv[1]
+        image_path = os.path.join('images', 'frisona.jpg')  # Ruta predeterminada a la imagen en el repositorio
+    else:
+        image_path = sys.argv[1]
     
-    # Cargar el modelo
-    model_path = 'best.pt'  # Sustituye esto con la ruta real a tu modelo
-    model = load_model(model_path)
+    try:
+        # Cargar el modelo
+        model_path = 'best.pt'  # Sustituye esto con la ruta real a tu modelo
+        model = load_model(model_path)
 
-    process_image(image_path, model)
+        process_image(image_path, model)
+    except Exception as e:
+        print(f"Error: {e}")
+        sys.exit(1)
