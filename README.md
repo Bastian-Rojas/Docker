@@ -1,4 +1,4 @@
-# Proyecto de Detección de Vacas con Docker y Jenkins
+# Proyecto de Detección de Vacas
 
 ## Prerequisitos
 - Docker
