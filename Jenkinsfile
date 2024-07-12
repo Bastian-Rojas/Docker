@@ -29,7 +29,6 @@ pipeline {
         stage('Train Model') {
             steps {
                 sh ". venv/bin/activate && python train.py"
-                // Mueve el modelo entrenado a la ubicación esperada
                 sh "mv runs/train/exp/weights/best.pt ${MODEL_PATH}"
             }
         }
